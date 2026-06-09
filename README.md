@@ -1,5 +1,5 @@
 # Coral Hierarchy
 
-🔗 **צפייה בדיאגרמה:** https://coral-hierarchy.tiiny.site/
+🔗 **View the diagram:** https://coral-hierarchy.tiiny.site/
 
-דיאגרמה המתארת את תוצאות פרויקט המחקר, שנעשה במסגרת קורס במכון הבין-אוניברסיטאי למדעי הים באילת.
+A diagram describing the results of a research project, carried out as part of a course at the Interuniversity Institute for Marine Sciences in Eilat.
