@@ -4,644 +4,590 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Coral Species Interaction Hierarchy</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap');
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  background: #0a1628;
-  color: #c8dce8;
-  font-family: 'DM Sans', sans-serif;
-  min-height: 100vh;
-}
-
-.page-header {
-  text-align: center;
-  padding: 40px 20px 10px;
-}
-
-.page-header h1 {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 700;
-  font-size: 2.6rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #e0ecf4;
-  text-shadow: 0 0 40px rgba(56,189,248,0.15);
-}
-
-.page-header .subtitle {
-  font-size: 0.85rem;
-  letter-spacing: 0.25em;
-  color: #6b8da8;
-  margin-top: 6px;
-}
-
-/* Tabs */
-.tab-bar {
-  display: flex;
-  justify-content: center;
-  gap: 4px;
-  padding: 20px 20px 0;
-  flex-wrap: wrap;
-}
-
-.tab-btn {
-  background: rgba(30,60,90,0.35);
-  border: 1px solid rgba(56,189,248,0.12);
-  color: #6b8da8;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 10px 28px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 6px;
-}
-
-.tab-btn:hover {
-  background: rgba(30,80,120,0.5);
-  color: #a8d0e8;
-}
-
-.tab-btn.active {
-  background: linear-gradient(135deg, rgba(20,80,130,0.7), rgba(30,100,150,0.5));
-  border-color: rgba(56,189,248,0.35);
-  color: #e0ecf4;
-  box-shadow: 0 0 20px rgba(56,189,248,0.1);
-}
-
-/* Legend */
-.legend {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  padding: 20px;
-  flex-wrap: wrap;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.82rem;
-  color: #8aa8c0;
-}
-
-.legend-line {
-  width: 50px;
-  height: 2px;
-  position: relative;
-}
-
-.legend-line.dominant {
-  background: rgba(56,189,248,0.5);
-}
-
-.legend-line.dominant::after {
-  content: '';
-  position: absolute;
-  right: -1px;
-  top: -4px;
-  border: 5px solid transparent;
-  border-left: 7px solid rgba(56,189,248,0.6);
-}
-
-.legend-line.mutual {
-  background: transparent;
-  border-top: 2px dashed rgba(248,113,113,0.6);
-}
-
-.legend-line.mutual::before {
-  content: '';
-  position: absolute;
-  left: -1px;
-  top: -4px;
-  border: 5px solid transparent;
-  border-right: 7px solid rgba(248,113,113,0.5);
-}
-
-.legend-line.mutual::after {
-  content: '';
-  position: absolute;
-  right: -1px;
-  top: -4px;
-  border: 5px solid transparent;
-  border-left: 7px solid rgba(248,113,113,0.5);
-}
-
-/* Chart container */
-.chart-container {
-  display: none;
-  position: relative;
-  width: 100%;
-  overflow-x: auto;
-}
-
-.chart-container.active {
-  display: block;
-}
-
-.chart-svg {
-  display: block;
-  margin: 0 auto;
-}
-
-/* Tier labels */
-.tier-label {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  fill: rgba(107,141,168,0.5);
-}
-
-/* Node styling */
-.node-group { cursor: pointer; }
-
-.node-circle {
-  fill: rgba(20,70,110,0.7);
-  stroke: rgba(56,189,248,0.35);
-  stroke-width: 2.5;
-  transition: all 0.3s ease;
-  filter: drop-shadow(0 0 8px rgba(56,189,248,0.1));
-}
-
-.node-group:hover .node-circle,
-.node-group.highlighted .node-circle {
-  fill: rgba(30,90,140,0.85);
-  stroke: rgba(56,189,248,0.7);
-  stroke-width: 3;
-  filter: drop-shadow(0 0 18px rgba(56,189,248,0.3));
-}
-
-.node-group.dimmed .node-circle {
-  fill: rgba(20,50,80,0.3);
-  stroke: rgba(56,189,248,0.1);
-  filter: none;
-}
-
-.node-label {
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-weight: 600;
-  font-size: 14px;
-  fill: #c8dce8;
-  text-anchor: middle;
-  dominant-baseline: central;
-  pointer-events: none;
-  transition: fill 0.3s ease;
-}
-
-.node-group.dimmed .node-label {
-  fill: rgba(107,141,168,0.3);
-}
-
-.win-badge {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  fill: #e0ecf4;
-  text-anchor: middle;
-  dominant-baseline: central;
-  pointer-events: none;
-}
-
-.win-badge-bg {
-  fill: rgba(20,100,160,0.8);
-  stroke: rgba(56,189,248,0.4);
-  stroke-width: 1.5;
-}
-
-/* Edges */
-.edge-dominant {
-  stroke: rgba(56,189,248,0.25);
-  stroke-width: 1.5;
-  fill: none;
-  marker-end: url(#arrowDominant);
-  transition: all 0.3s ease;
-}
-
-.edge-dominant.highlighted {
-  stroke: rgba(56,189,248,0.7);
-  stroke-width: 2.5;
-}
-
-.edge-dominant.dimmed {
-  stroke: rgba(56,189,248,0.06);
-  stroke-width: 1;
-}
-
-.edge-mutual {
-  stroke: rgba(248,113,113,0.35);
-  stroke-width: 1.5;
-  fill: none;
-  stroke-dasharray: 8 5;
-  marker-start: url(#arrowMutualStart);
-  marker-end: url(#arrowMutualEnd);
-  transition: all 0.3s ease;
-}
-
-.edge-mutual.highlighted {
-  stroke: rgba(248,113,113,0.75);
-  stroke-width: 2.5;
-}
-
-.edge-mutual.dimmed {
-  stroke: rgba(248,113,113,0.06);
-  stroke-width: 1;
-}
-
-.edge-count {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
-  fill: rgba(56,189,248,0.5);
-  text-anchor: middle;
-  dominant-baseline: central;
-  pointer-events: none;
-}
-
-.edge-count.mutual-count {
-  fill: rgba(248,113,113,0.5);
-}
-
-/* Tooltip */
-.tooltip {
-  position: fixed;
-  background: rgba(10,30,55,0.95);
-  border: 1px solid rgba(56,189,248,0.3);
-  border-radius: 8px;
-  padding: 14px 18px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  z-index: 1000;
-  max-width: 320px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-}
-
-.tooltip.visible { opacity: 1; }
-
-.tooltip-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-weight: 700;
-  font-size: 1.15rem;
-  color: #e0ecf4;
-  margin-bottom: 4px;
-}
-
-.tooltip-score {
-  font-size: 0.78rem;
-  color: #6b8da8;
-  margin-bottom: 10px;
-}
-
-.tooltip-section {
-  margin-bottom: 6px;
-}
-
-.tooltip-section-title {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-
-.tooltip-section-title.beats { color: #38bdf8; }
-.tooltip-section-title.lost { color: #f87171; }
-.tooltip-section-title.mutual { color: #fbbf24; }
-
-.tooltip-section-list {
-  font-size: 0.78rem;
-  color: #a8c4d8;
-  line-height: 1.5;
-}
-
-.tooltip-section-list span {
-  font-style: italic;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 0.88rem;
-}
-
-/* Tier dividers */
-.tier-divider {
-  stroke: rgba(107,141,168,0.12);
-  stroke-width: 1;
-  stroke-dasharray: 6 6;
-}
+  :root {
+    --bg-deep: #071525;
+    --accent-blue: #4da8d4;
+    --accent-bright: #7dd8f8;
+    --text-sub: #7ab8d4;
+    --text-node: #e8f6ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg-deep);
+    font-family: 'Montserrat', sans-serif;
+    color: var(--text-node);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(30,111,163,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 10% 80%, rgba(13,37,64,0.4) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .page-header {
+    text-align: center;
+    padding: 48px 24px 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .page-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent-bright);
+    text-shadow: 0 0 40px rgba(125,216,248,0.4);
+    margin-bottom: 10px;
+  }
+  .page-subtitle {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-sub);
+    opacity: 0.8;
+  }
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px 16px 0;
+    position: relative;
+    z-index: 1;
+  }
+  .tab {
+    padding: 9px 28px;
+    border: 1px solid rgba(77,168,212,0.35);
+    background: rgba(13,37,64,0.5);
+    color: var(--text-sub);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+  }
+  .tab:hover { border-color: var(--accent-blue); color: var(--accent-bright); background: rgba(77,168,212,0.1); }
+  .tab.active { border-color: var(--accent-bright); color: var(--accent-bright); background: rgba(77,168,212,0.18); box-shadow: 0 0 16px rgba(77,168,212,0.2); }
+  .chart-container { display: none; position: relative; z-index: 1; padding: 20px 16px 48px; }
+  .chart-container.active { display: block; }
+  .chart-header { text-align: center; margin-bottom: 8px; }
+  .chart-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: clamp(0.9rem, 2vw, 1.3rem);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent-bright);
+    margin-bottom: 4px;
+  }
+  .chart-loc { font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-sub); opacity: 0.7; }
+  .legend { display: flex; justify-content: center; gap: 40px; margin: 16px 0 8px; }
+  .legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-sub); }
+  .legend-arrow { width: 50px; height: 12px; }
+  .legend-arrow svg { width: 100%; height: 100%; }
+  .hierarchy-svg-wrap { width: 100%; overflow-x: auto; }
+  .hierarchy-svg-wrap svg { display: block; margin: 0 auto; }
+  .tooltip {
+    position: fixed;
+    background: rgba(10,30,55,0.97);
+    border: 1px solid rgba(77,168,212,0.5);
+    border-radius: 4px;
+    padding: 12px 16px;
+    font-size: 0.72rem;
+    line-height: 1.7;
+    color: var(--text-node);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 999;
+    max-width: 260px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .tooltip.visible { opacity: 1; }
+  .tooltip .tt-name { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1rem; color: var(--accent-bright); margin-bottom: 4px; }
+  .tooltip .tt-score { font-weight: 600; color: var(--accent-blue); }
+  .tooltip .tt-label { color: var(--text-sub); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .tooltip .tt-beats { color: #9dd4ee; font-style: italic; }
+  .sp-node { cursor: pointer; }
+  .sp-node:hover circle:first-of-type { filter: brightness(1.3) drop-shadow(0 0 8px rgba(125,216,248,0.6)); }
 </style>
 </head>
 <body>
 
 <div class="page-header">
-  <h1>Coral Species Interaction Hierarchy</h1>
-  <div class="subtitle">Gulf of Aqaba · Red Sea · May 2026</div>
+  <div class="page-title">Coral Species Interaction Hierarchy</div>
+  <div class="page-subtitle">Red Sea · May 2026</div>
 </div>
 
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('snorkel')">Snorkel Data</button>
-  <button class="tab-btn" onclick="switchTab('dive')">Dive Data</button>
-  <button class="tab-btn" onclick="switchTab('combined')">Combined Data</button>
+<div class="tabs">
+  <button class="tab active" onclick="showChart('dive')">Dive Data</button>
+  <button class="tab" onclick="showChart('snorkel')">Snorkel Data</button>
+  <button class="tab" onclick="showChart('combined')">Combined Data</button>
 </div>
 
-<div class="legend">
-  <div class="legend-item">
-    <div class="legend-line dominant"></div>
-    <span>Dominant → Subordinate</span>
+<!-- DIVE -->
+<div class="chart-container active" id="chart-dive">
+  <div class="chart-header">
+    <div class="chart-title">IUI Site — Dive Transects</div>
+    <div class="chart-loc">IUI Dive Site · Red Sea · 04 May 2026</div>
   </div>
-  <div class="legend-item">
-    <div class="legend-line mutual"></div>
-    <span>Mutual Aggression</span>
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-arrow"><svg><defs><marker id="lda" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4da8d4"/></marker></defs><line x1="2" y1="6" x2="42" y2="6" stroke="#4da8d4" stroke-width="1.5" marker-end="url(#lda)"/></svg></div>
+      Dominant → Subordinate
+    </div>
+    <div class="legend-item">
+      <div class="legend-arrow"><svg><defs><marker id="lma" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto"><path d="M6,0 L0,3 L6,6 Z" fill="#e05c5c"/></marker><marker id="lmb" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e05c5c"/></marker></defs><line x1="2" y1="6" x2="46" y2="6" stroke="#e05c5c" stroke-width="1.5" stroke-dasharray="5,3" marker-start="url(#lma)" marker-end="url(#lmb)"/></svg></div>
+      Mutual Aggression
+    </div>
   </div>
+  <div class="hierarchy-svg-wrap" id="svg-dive"></div>
 </div>
 
-<div id="chart-snorkel" class="chart-container active"></div>
-<div id="chart-dive" class="chart-container"></div>
-<div id="chart-combined" class="chart-container"></div>
+<!-- SNORKEL -->
+<div class="chart-container" id="chart-snorkel">
+  <div class="chart-header">
+    <div class="chart-title">Caves Snorkel Site</div>
+    <div class="chart-loc">Caves Snorkel Site · Red Sea · 05–06 May 2026</div>
+  </div>
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-arrow"><svg><defs><marker id="sda" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4da8d4"/></marker></defs><line x1="2" y1="6" x2="42" y2="6" stroke="#4da8d4" stroke-width="1.5" marker-end="url(#sda)"/></svg></div>
+      Dominant → Subordinate
+    </div>
+    <div class="legend-item">
+      <div class="legend-arrow"><svg><defs><marker id="sma" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto"><path d="M6,0 L0,3 L6,6 Z" fill="#e05c5c"/></marker><marker id="smb" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e05c5c"/></marker></defs><line x1="2" y1="6" x2="46" y2="6" stroke="#e05c5c" stroke-width="1.5" stroke-dasharray="5,3" marker-start="url(#sma)" marker-end="url(#smb)"/></svg></div>
+      Mutual Aggression
+    </div>
+  </div>
+  <div class="hierarchy-svg-wrap" id="svg-snorkel"></div>
+</div>
+
+<!-- COMBINED -->
+<div class="chart-container" id="chart-combined">
+  <div class="chart-header">
+    <div class="chart-title">Combined Data — All Sites</div>
+    <div class="chart-loc">IUI Dive + Caves Snorkel · Red Sea · May 2026</div>
+  </div>
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-arrow"><svg><defs><marker id="cda" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4da8d4"/></marker></defs><line x1="2" y1="6" x2="42" y2="6" stroke="#4da8d4" stroke-width="1.5" marker-end="url(#cda)"/></svg></div>
+      Dominant → Subordinate
+    </div>
+    <div class="legend-item">
+      <div class="legend-arrow"><svg><defs><marker id="cma" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto"><path d="M6,0 L0,3 L6,6 Z" fill="#e05c5c"/></marker><marker id="cmb" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e05c5c"/></marker></defs><line x1="2" y1="6" x2="46" y2="6" stroke="#e05c5c" stroke-width="1.5" stroke-dasharray="5,3" marker-start="url(#cma)" marker-end="url(#cmb)"/></svg></div>
+      Mutual Aggression
+    </div>
+  </div>
+  <div class="hierarchy-svg-wrap" id="svg-combined"></div>
+</div>
 
 <div class="tooltip" id="tooltip"></div>
 
 <script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+// Tiers grouped strictly by win count (most wins = top, least = bottom).
+// Badge shows number of wins.
+
 const DATASETS = {
-  snorkel: {"Favites":{"name":"Favites","wins":6,"losses":5,"total":12,"beats":{"Goniastrea":3,"Hydnophora":1,"Millepora":1,"Porites":1},"lost_to":{"Dipsastrea":1,"Goniastrea":2,"Platygyra":1,"Stylophora":1},"mutuals":{"Platygyra":1}},"Goniastrea":{"name":"Goniastrea","wins":4,"losses":6,"total":10,"beats":{"Favites":2,"Platygyra":1,"Porites":1},"lost_to":{"Dipsastrea":1,"Pocillopora":1,"Favites":3,"Porites":1},"mutuals":{}},"Dipsastrea":{"name":"Dipsastrea","wins":4,"losses":0,"total":5,"beats":{"Platygyra":1,"Goniastrea":1,"Cyphastrea":1,"Favites":1},"lost_to":{},"mutuals":{"Astreopora":1}},"Platygyra":{"name":"Platygyra","wins":2,"losses":2,"total":5,"beats":{"Pocillopora":1,"Favites":1},"lost_to":{"Dipsastrea":1,"Goniastrea":1},"mutuals":{"Favites":1}},"Stylophora":{"name":"Stylophora","wins":1,"losses":0,"total":1,"beats":{"Favites":1},"lost_to":{},"mutuals":{}},"Pocillopora":{"name":"Pocillopora","wins":1,"losses":1,"total":2,"beats":{"Goniastrea":1},"lost_to":{"Platygyra":1},"mutuals":{}},"Astreopora":{"name":"Astreopora","wins":1,"losses":0,"total":2,"beats":{"Porites":1},"lost_to":{},"mutuals":{"Dipsastrea":1}},"Porites":{"name":"Porites","wins":1,"losses":3,"total":4,"beats":{"Goniastrea":1},"lost_to":{"Favites":1,"Goniastrea":1,"Astreopora":1},"mutuals":{}},"Millepora":{"name":"Millepora","wins":0,"losses":1,"total":1,"beats":{},"lost_to":{"Favites":1},"mutuals":{}},"Hydnophora":{"name":"Hydnophora","wins":0,"losses":1,"total":1,"beats":{},"lost_to":{"Favites":1},"mutuals":{}},"Cyphastrea":{"name":"Cyphastrea","wins":0,"losses":1,"total":1,"beats":{},"lost_to":{"Dipsastrea":1},"mutuals":{}}},
-
-  dive: {"Millepora":{"name":"Millepora","wins":15,"losses":0,"total":15,"beats":{"Platygyra":1,"Favites":6,"Stylophora":2,"Cyphastrea":2,"Goniastrea":2,"Lobophyllia":1,"Dipsastrea":1},"lost_to":{},"mutuals":{}},"Favites":{"name":"Favites","wins":7,"losses":9,"total":16,"beats":{"Goniastrea":2,"Dipsastrea":1,"Acropora":1,"Cyphastrea":3},"lost_to":{"Millepora":6,"Cyphastrea":1,"Acropora":1,"Pocillopora":1},"mutuals":{}},"Dipsastrea":{"name":"Dipsastrea","wins":5,"losses":6,"total":11,"beats":{"Cyphastrea":1,"Stylophora":1,"Acropora":1,"Pocillopora":1,"Goniastrea":1},"lost_to":{"Millepora":1,"Favites":1,"Sarcophyton":1,"Cyphastrea":1,"Sinularia":1,"Lobophyllia":1},"mutuals":{}},"Acropora":{"name":"Acropora","wins":3,"losses":3,"total":6,"beats":{"Cyphastrea":1,"Turbinaria":1,"Favites":1},"lost_to":{"Favites":1,"Dipsastrea":1,"Xenia":1},"mutuals":{}},"Stylophora":{"name":"Stylophora","wins":2,"losses":5,"total":7,"beats":{"Cyphastrea":1,"Goniastrea":1},"lost_to":{"Goniastrea":1,"Millepora":2,"Dipsastrea":1,"Lobophyllia":1},"mutuals":{}},"Pocillopora":{"name":"Pocillopora","wins":2,"losses":2,"total":4,"beats":{"Favites":1,"Cyphastrea":1},"lost_to":{"Goniastrea":1,"Dipsastrea":1},"mutuals":{}},"Lobophyllia":{"name":"Lobophyllia","wins":2,"losses":1,"total":3,"beats":{"Dipsastrea":1,"Stylophora":1},"lost_to":{"Millepora":1},"mutuals":{}},"Cyphastrea":{"name":"Cyphastrea","wins":2,"losses":9,"total":11,"beats":{"Dipsastrea":1,"Favites":1},"lost_to":{"Millepora":2,"Favites":3,"Dipsastrea":1,"Stylophora":1,"Acropora":1,"Pocillopora":1},"mutuals":{}},"Goniastrea":{"name":"Goniastrea","wins":2,"losses":6,"total":8,"beats":{"Pocillopora":1,"Stylophora":1},"lost_to":{"Millepora":2,"Favites":2,"Dipsastrea":1,"Stylophora":1},"mutuals":{}},"Xenia":{"name":"Xenia","wins":1,"losses":0,"total":1,"beats":{"Acropora":1},"lost_to":{},"mutuals":{}},"Sinularia":{"name":"Sinularia","wins":1,"losses":0,"total":1,"beats":{"Dipsastrea":1},"lost_to":{},"mutuals":{}},"Sarcophyton":{"name":"Sarcophyton","wins":1,"losses":0,"total":1,"beats":{"Dipsastrea":1},"lost_to":{},"mutuals":{}},"Turbinaria":{"name":"Turbinaria","wins":0,"losses":1,"total":1,"beats":{},"lost_to":{"Acropora":1},"mutuals":{}},"Platygyra":{"name":"Platygyra","wins":0,"losses":1,"total":1,"beats":{},"lost_to":{"Millepora":1},"mutuals":{}}},
-
-  combined: {"Millepora":{"name":"Millepora","wins":15,"losses":1,"total":16,"beats":{"Platygyra":1,"Favites":6,"Stylophora":2,"Cyphastrea":2,"Goniastrea":2,"Lobophyllia":1,"Dipsastrea":1},"lost_to":{"Favites":1},"mutuals":{}},"Favites":{"name":"Favites","wins":13,"losses":14,"total":28,"beats":{"Goniastrea":5,"Dipsastrea":1,"Acropora":1,"Cyphastrea":3,"Hydnophora":1,"Millepora":1,"Porites":1},"lost_to":{"Goniastrea":2,"Millepora":6,"Dipsastrea":1,"Cyphastrea":1,"Stylophora":1,"Acropora":1,"Pocillopora":1,"Platygyra":1},"mutuals":{"Platygyra":1}},"Dipsastrea":{"name":"Dipsastrea","wins":9,"losses":6,"total":16,"beats":{"Cyphastrea":2,"Stylophora":1,"Acropora":1,"Pocillopora":1,"Goniastrea":2,"Platygyra":1,"Favites":1},"lost_to":{"Millepora":1,"Favites":1,"Sarcophyton":1,"Cyphastrea":1,"Sinularia":1,"Lobophyllia":1},"mutuals":{"Astreopora":1}},"Goniastrea":{"name":"Goniastrea","wins":6,"losses":12,"total":18,"beats":{"Pocillopora":1,"Stylophora":1,"Favites":2,"Platygyra":1,"Porites":1},"lost_to":{"Millepora":2,"Favites":5,"Dipsastrea":2,"Stylophora":1,"Pocillopora":1,"Porites":1},"mutuals":{}},"Stylophora":{"name":"Stylophora","wins":3,"losses":5,"total":8,"beats":{"Cyphastrea":1,"Goniastrea":1,"Favites":1},"lost_to":{"Goniastrea":1,"Millepora":2,"Dipsastrea":1,"Lobophyllia":1},"mutuals":{}},"Pocillopora":{"name":"Pocillopora","wins":3,"losses":3,"total":6,"beats":{"Favites":1,"Cyphastrea":1,"Goniastrea":1},"lost_to":{"Goniastrea":1,"Dipsastrea":1,"Platygyra":1},"mutuals":{}},"Acropora":{"name":"Acropora","wins":3,"losses":3,"total":6,"beats":{"Cyphastrea":1,"Turbinaria":1,"Favites":1},"lost_to":{"Favites":1,"Dipsastrea":1,"Xenia":1},"mutuals":{}},"Lobophyllia":{"name":"Lobophyllia","wins":2,"losses":1,"total":3,"beats":{"Dipsastrea":1,"Stylophora":1},"lost_to":{"Millepora":1},"mutuals":{}},"Cyphastrea":{"name":"Cyphastrea","wins":2,"losses":10,"total":12,"beats":{"Dipsastrea":1,"Favites":1},"lost_to":{"Millepora":2,"Favites":3,"Dipsastrea":2,"Stylophora":1,"Acropora":1,"Pocillopora":1},"mutuals":{}},"Platygyra":{"name":"Platygyra","wins":2,"losses":3,"total":6,"beats":{"Pocillopora":1,"Favites":1},"lost_to":{"Goniastrea":1,"Millepora":1,"Dipsastrea":1},"mutuals":{"Favites":1}},"Xenia":{"name":"Xenia","wins":1,"losses":0,"total":1,"beats":{"Acropora":1},"lost_to":{},"mutuals":{}},"Sinularia":{"name":"Sinularia","wins":1,"losses":0,"total":1,"beats":{"Dipsastrea":1},"lost_to":{},"mutuals":{}},"Astreopora":{"name":"Astreopora","wins":1,"losses":0,"total":2,"beats":{"Porites":1},"lost_to":{},"mutuals":{"Dipsastrea":1}},"Sarcophyton":{"name":"Sarcophyton","wins":1,"losses":0,"total":1,"beats":{"Dipsastrea":1},"lost_to":{},"mutuals":{}},"Porites":{"name":"Porites","wins":1,"losses":3,"total":4,"beats":{"Goniastrea":1},"lost_to":{"Goniastrea":1,"Favites":1,"Astreopora":1},"mutuals":{}},"Turbinaria":{"name":"Turbinaria","wins":0,"losses":1,"total":1,"beats":{},"lost_to":{"Acropora":1},"mutuals":{}},"Hydnophora":{"name":"Hydnophora","wins":0,"losses":1,"total":1,"beats":{},"lost_to":{"Favites":1},"mutuals":{}}}
+  dive: {
+    tiers: [
+      { label: 'Tier I — Dominant',   wins: 15, species: ['Millepora'] },
+      { label: 'Tier II — Strong',    wins: 7,  species: ['Dipsastrea','Favites'] },
+      { label: 'Tier III — Moderate', wins: 3,  species: ['Acropora','Cyphastrea'] },
+      { label: 'Tier IV',             wins: 2,  species: ['Goniastrea','Lobophyllia','Pocillopora','Stylophora'] },
+      { label: 'Tier V',              wins: 1,  species: ['Sarcophyton','Simularia','Xenia'] },
+      { label: 'Tier VI — Subordinate', wins: 0, species: ['Platygyra','Turbinaria'] },
+    ],
+    wins: {"Favites":7,"Stylophora":2,"Platygyra":0,"Lobophyllia":2,"Xenia":1,"Dipsastrea":7,"Cyphastrea":3,"Pocillopora":2,"Sarcophyton":1,"Millepora":15,"Goniastrea":2,"Simularia":1,"Turbinaria":0,"Acropora":3},
+    beats: {"Goniastrea":["Pocillopora","Stylophora"],"Millepora":["Cyphastrea","Dipsastrea","Favites","Goniastrea","Lobophyllia","Platygyra","Stylophora"],"Favites":["Acropora","Cyphastrea","Dipsastrea","Goniastrea"],"Cyphastrea":["Dipsastrea","Favites","Stylophora"],"Sarcophyton":["Dipsastrea"],"Dipsastrea":["Acropora","Cyphastrea","Goniastrea","Pocillopora","Stylophora"],"Stylophora":["Cyphastrea","Goniastrea"],"Simularia":["Dipsastrea"],"Lobophyllia":["Dipsastrea","Stylophora"],"Acropora":["Cyphastrea","Favites","Turbinaria"],"Xenia":["Acropora"],"Pocillopora":["Cyphastrea","Favites"]},
+    losses: {"Millepora":[],"Dipsastrea":["Cyphastrea","Favites","Lobophyllia","Millepora","Sarcophyton","Simularia"],"Favites":["Cyphastrea","Millepora"],"Acropora":["Dipsastrea","Favites","Xenia"],"Cyphastrea":["Acropora","Dipsastrea","Millepora","Pocillopora"],"Goniastrea":["Dipsastrea","Favites","Millepora","Stylophora"],"Lobophyllia":["Millepora"],"Pocillopora":["Dipsastrea","Goniastrea"],"Stylophora":["Cyphastrea","Dipsastrea","Goniastrea","Lobophyllia","Millepora"],"Sarcophyton":[],"Simularia":[],"Xenia":[],"Platygyra":["Millepora"],"Turbinaria":["Acropora"]},
+    mutual: [],
+  },
+  snorkel: {
+    tiers: [
+      { label: 'Tier I — Dominant',   wins: 4, species: ['Dipsastrea','Goniastrea'] },
+      { label: 'Tier II — Strong',    wins: 3, species: ['Favites'] },
+      { label: 'Tier III — Moderate', wins: 2, species: ['Platygyra'] },
+      { label: 'Tier IV',             wins: 1, species: ['Astreopora','Pocillopora','Porites','Stylophora'] },
+      { label: 'Tier V — Subordinate', wins: 0, species: ['Cyphastrea','Hydnopora'] },
+    ],
+    wins: {"Favites":3,"Stylophora":1,"Platygyra":2,"Hydnopora":0,"Dipsastrea":4,"Cyphastrea":0,"Pocillopora":1,"Astreopora":1,"Goniastrea":4,"Porites":1},
+    beats: {"Dipsastrea":["Cyphastrea","Favites","Goniastrea","Platygyra"],"Pocillopora":["Goniastrea"],"Favites":["Goniastrea","Hydnopora","Porites"],"Goniastrea":["Favites","Platygyra","Porites"],"Platygyra":["Favites","Pocillopora"],"Stylophora":["Favites"],"Porites":["Goniastrea"],"Astreopora":["Porites"]},
+    losses: {"Dipsastrea":[],"Goniastrea":["Dipsastrea","Favites","Pocillopora","Porites"],"Favites":["Dipsastrea","Goniastrea","Stylophora"],"Platygyra":["Dipsastrea","Goniastrea"],"Astreopora":[],"Pocillopora":["Platygyra"],"Porites":["Astreopora","Favites"],"Stylophora":[],"Cyphastrea":["Dipsastrea"],"Hydnopora":["Favites"]},
+    mutual: [['Astreopora','Dipsastrea'],['Favites','Platygyra']],
+  },
+  combined: {
+    tiers: [
+      { label: 'Tier I — Dominant',   wins: 15, species: ['Millepora'] },
+      { label: 'Tier II',             wins: 11, species: ['Dipsastrea'] },
+      { label: 'Tier III',            wins: 10, species: ['Favites'] },
+      { label: 'Tier IV — Strong',    wins: 6,  species: ['Goniastrea'] },
+      { label: 'Tier V — Moderate',   wins: 3,  species: ['Acropora','Cyphastrea','Pocillopora','Stylophora'] },
+      { label: 'Tier VI',             wins: 2,  species: ['Lobophyllia','Platygyra'] },
+      { label: 'Tier VII',            wins: 1,  species: ['Astreopora','Porites','Sarcophyton','Simularia','Xenia'] },
+      { label: 'Tier VIII — Subordinate', wins: 0, species: ['Hydnopora','Turbinaria'] },
+    ],
+    wins: {"Favites":10,"Stylophora":3,"Platygyra":2,"Lobophyllia":2,"Xenia":1,"Hydnopora":0,"Dipsastrea":11,"Cyphastrea":3,"Pocillopora":3,"Astreopora":1,"Sarcophyton":1,"Millepora":15,"Goniastrea":6,"Porites":1,"Simularia":1,"Turbinaria":0,"Acropora":3},
+    beats: {"Goniastrea":["Favites","Platygyra","Pocillopora","Porites","Stylophora"],"Millepora":["Cyphastrea","Dipsastrea","Favites","Goniastrea","Lobophyllia","Platygyra","Stylophora"],"Favites":["Acropora","Cyphastrea","Dipsastrea","Goniastrea","Hydnopora","Porites"],"Cyphastrea":["Dipsastrea","Favites","Stylophora"],"Sarcophyton":["Dipsastrea"],"Dipsastrea":["Acropora","Cyphastrea","Favites","Goniastrea","Platygyra","Pocillopora","Stylophora"],"Stylophora":["Cyphastrea","Favites","Goniastrea"],"Simularia":["Dipsastrea"],"Lobophyllia":["Dipsastrea","Stylophora"],"Acropora":["Cyphastrea","Favites","Turbinaria"],"Xenia":["Acropora"],"Pocillopora":["Cyphastrea","Favites","Goniastrea"],"Platygyra":["Favites","Pocillopora"],"Porites":["Goniastrea"],"Astreopora":["Porites"]},
+    losses: {"Millepora":[],"Dipsastrea":["Cyphastrea","Favites","Lobophyllia","Millepora","Sarcophyton","Simularia"],"Favites":["Cyphastrea","Dipsastrea","Millepora"],"Goniastrea":["Dipsastrea","Favites","Millepora","Stylophora"],"Acropora":["Dipsastrea","Favites","Xenia"],"Cyphastrea":["Acropora","Dipsastrea","Millepora","Pocillopora"],"Pocillopora":["Dipsastrea","Goniastrea","Platygyra"],"Stylophora":["Cyphastrea","Dipsastrea","Goniastrea","Lobophyllia","Millepora"],"Lobophyllia":["Millepora"],"Platygyra":["Dipsastrea","Goniastrea","Millepora"],"Astreopora":[],"Porites":["Astreopora","Favites"],"Sarcophyton":[],"Simularia":[],"Xenia":[],"Hydnopora":["Favites"],"Turbinaria":["Acropora"]},
+    mutual: [['Astreopora','Dipsastrea'],['Favites','Platygyra']],
+  }
 };
 
-const tooltip = document.getElementById('tooltip');
-let currentTab = 'snorkel';
+// ── CHART BUILDER ─────────────────────────────────────────────────────────────
+function buildChart(containerId, dataKey) {
+  const data = DATASETS[dataKey];
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
 
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach((b, i) => {
-    b.classList.toggle('active', ['snorkel','dive','combined'][i] === tab);
-  });
-  document.querySelectorAll('.chart-container').forEach(c => c.classList.remove('active'));
-  document.getElementById('chart-' + tab).classList.add('active');
-  renderChart(tab);
-}
+  const PAD_X = 90, PAD_TOP = 50, PAD_BOT = 50;
+  const TIER_H = 140;
+  const NODE_R = 36;
+  const MIN_W = 900;
 
-function assignTiers(data) {
-  const species = Object.values(data).sort((a, b) => b.wins - a.wins || a.total - b.total);
-  if (species.length === 0) return { tiers: [], tierLabels: [] };
+  const tiers = data.tiers;
+  const maxInRow = Math.max(...tiers.map(t => t.species.length));
+  const svgW = Math.max(MIN_W, maxInRow * 170 + PAD_X * 2);
+  const svgH = tiers.length * TIER_H + PAD_TOP + PAD_BOT;
 
-  const maxWins = species[0].wins;
-  const minWins = species[species.length - 1].wins;
-  const range = maxWins - minWins || 1;
-
-  const tiers = [[], [], []]; // top, mid, bottom
-  const tierLabels = ['Tier I — Dominant', 'Tier II — Strong', 'Tier III — Moderate'];
-
-  species.forEach(sp => {
-    const ratio = (sp.wins - minWins) / range;
-    if (ratio >= 0.6) tiers[0].push(sp);
-    else if (ratio >= 0.2) tiers[1].push(sp);
-    else tiers[2].push(sp);
-  });
-
-  // Ensure no empty tiers — redistribute
-  if (tiers[0].length === 0 && species.length > 0) {
-    tiers[0].push(tiers[1].shift() || tiers[2].shift());
-  }
-  if (tiers[1].length === 0 && tiers[2].length > 1) {
-    const half = Math.ceil(tiers[2].length / 2);
-    tiers[1] = tiers[2].splice(0, half);
-  }
-
-  return { tiers, tierLabels };
-}
-
-function renderChart(tab) {
-  const data = DATASETS[tab];
-  const container = document.getElementById('chart-' + tab);
-  const { tiers, tierLabels } = assignTiers(data);
-
-  const nodeRadius = 48;
-  const tierYs = [120, 310, 520];
-  const svgWidth = Math.max(960, ...tiers.map(t => t.length * 160 + 100));
-  const svgHeight = 660;
-  const nodePositions = {};
-
-  // Lay out nodes per tier
+  // Position nodes
+  const pos = {};
   tiers.forEach((tier, ti) => {
-    const y = tierYs[ti];
-    const totalW = tier.length * 140;
-    const startX = (svgWidth - totalW) / 2 + 70;
-    tier.forEach((sp, si) => {
-      nodePositions[sp.name] = {
-        x: startX + si * 140,
-        y: y,
-        ...sp
-      };
+    const y = PAD_TOP + ti * TIER_H + TIER_H / 2;
+    const count = tier.species.length;
+    const spacing = svgW / (count + 1);
+    tier.species.forEach((sp, si) => {
+      pos[sp] = { x: spacing * (si + 1), y, tier: ti };
     });
   });
 
-  // Collect edges
-  const dominantEdges = [];
-  const mutualEdges = [];
-  const seenMutuals = new Set();
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('width', svgW);
+  svg.setAttribute('height', svgH);
+  svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
 
-  Object.values(data).forEach(sp => {
-    Object.entries(sp.beats).forEach(([loser, count]) => {
-      if (nodePositions[loser]) {
-        dominantEdges.push({ from: sp.name, to: loser, count });
-      }
-    });
-    Object.entries(sp.mutuals).forEach(([other, count]) => {
-      const key = [sp.name, other].sort().join('|');
-      if (!seenMutuals.has(key) && nodePositions[other]) {
-        seenMutuals.add(key);
-        mutualEdges.push({ a: sp.name, b: other, count });
-      }
-    });
+  // Defs
+  const defs = document.createElementNS(ns, 'defs');
+
+  // Node radial gradients per tier
+  const tierColors = [
+    ['#2a8fc4','#1460a0'],
+    ['#1e7ab0','#10527a'],
+    ['#196898','#0d4266'],
+    ['#145878','#0a3353'],
+    ['#0f4862','#073040'],
+    ['#0b3a50','#052838'],
+    ['#082e40','#042030'],
+    ['#061e2a','#031520'],
+  ];
+  tiers.forEach((tier, ti) => {
+    const [c1, c2] = tierColors[Math.min(ti, tierColors.length - 1)];
+    const grad = document.createElementNS(ns, 'radialGradient');
+    grad.setAttribute('id', `ng-${dataKey}-${ti}`);
+    grad.setAttribute('cx', '38%'); grad.setAttribute('cy', '35%'); grad.setAttribute('r', '65%');
+    const s1 = document.createElementNS(ns, 'stop');
+    s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', c1);
+    const s2 = document.createElementNS(ns, 'stop');
+    s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', c2);
+    grad.appendChild(s1); grad.appendChild(s2);
+    defs.appendChild(grad);
   });
 
-  // Build SVG
-  let svg = `<svg class="chart-svg" viewBox="0 0 ${svgWidth} ${svgHeight}" width="${svgWidth}" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <marker id="arrowDominant-${tab}" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
-      <path d="M0,0 L10,4 L0,8 Z" fill="rgba(56,189,248,0.5)"/>
-    </marker>
-    <marker id="arrowMutualEnd-${tab}" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="7" markerHeight="5" orient="auto">
-      <path d="M0,0 L10,4 L0,8 Z" fill="rgba(248,113,113,0.5)"/>
-    </marker>
-    <marker id="arrowMutualStart-${tab}" viewBox="0 0 10 8" refX="0" refY="4" markerWidth="7" markerHeight="5" orient="auto">
-      <path d="M10,0 L0,4 L10,8 Z" fill="rgba(248,113,113,0.5)"/>
-    </marker>
-    <filter id="glow-${tab}">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>`;
+  // Arrow markers
+  function mkMarker(id, color, isStart) {
+    const m = document.createElementNS(ns, 'marker');
+    m.setAttribute('id', id);
+    m.setAttribute('markerWidth', '7'); m.setAttribute('markerHeight', '7');
+    m.setAttribute('refX', isStart ? '1' : '6'); m.setAttribute('refY', '3.5');
+    m.setAttribute('orient', 'auto');
+    const p = document.createElementNS(ns, 'path');
+    p.setAttribute('d', isStart ? 'M7,0 L0,3.5 L7,7 Z' : 'M0,0 L7,3.5 L0,7 Z');
+    p.setAttribute('fill', color);
+    m.appendChild(p);
+    defs.appendChild(m);
+  }
+  mkMarker(`dom-end-${dataKey}`, '#4da8d4', false);
+  mkMarker(`mut-start-${dataKey}`, '#e05c5c', true);
+  mkMarker(`mut-end-${dataKey}`, '#e05c5c', false);
 
-  // Tier dividers & labels
-  const dividerYs = [215, 415];
-  dividerYs.forEach((dy, i) => {
-    svg += `<line class="tier-divider" x1="30" y1="${dy}" x2="${svgWidth - 30}" y2="${dy}"/>`;
-  });
-  tierLabels.forEach((label, i) => {
-    svg += `<text class="tier-label" x="35" y="${tierYs[i] - 48}">${label}</text>`;
-  });
+  svg.appendChild(defs);
 
-  // Draw edges (dominant)
-  dominantEdges.forEach((e, i) => {
-    const from = nodePositions[e.from];
-    const to = nodePositions[e.to];
-    if (!from || !to) return;
-    const dx = to.x - from.x;
-    const dy = to.y - from.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    const ux = dx / dist, uy = dy / dist;
-    const sx = from.x + ux * (nodeRadius + 4);
-    const sy = from.y + uy * (nodeRadius + 4);
-    const ex = to.x - ux * (nodeRadius + 10);
-    const ey = to.y - uy * (nodeRadius + 10);
-    // Curve offset
-    const cx = (sx + ex) / 2 - (ey - sy) * 0.15;
-    const cy = (sy + ey) / 2 + (ex - sx) * 0.15;
-    svg += `<path class="edge-dominant" data-from="${e.from}" data-to="${e.to}"
-      d="M${sx},${sy} Q${cx},${cy} ${ex},${ey}"
-      style="marker-end:url(#arrowDominant-${tab})"/>`;
-    if (e.count > 1) {
-      const lx = cx * 0.5 + (sx+ex)*0.25;
-      const ly = cy * 0.5 + (sy+ey)*0.25;
-      svg += `<text class="edge-count" x="${(sx+ex)/2 - (ey-sy)*0.08}" y="${(sy+ey)/2 + (ex-sx)*0.08}">${e.count}×</text>`;
+  // Background
+  const bg = document.createElementNS(ns, 'rect');
+  bg.setAttribute('width', svgW); bg.setAttribute('height', svgH);
+  bg.setAttribute('fill', '#071525');
+  svg.appendChild(bg);
+
+  // Tier bands + labels
+  tiers.forEach((tier, ti) => {
+    const y = PAD_TOP + ti * TIER_H;
+    const band = document.createElementNS(ns, 'rect');
+    band.setAttribute('x', 0); band.setAttribute('y', y);
+    band.setAttribute('width', svgW); band.setAttribute('height', TIER_H);
+    band.setAttribute('fill', ti % 2 === 0 ? 'rgba(255,255,255,0.016)' : 'rgba(0,0,0,0.03)');
+    svg.appendChild(band);
+
+    if (ti > 0) {
+      const line = document.createElementNS(ns, 'line');
+      line.setAttribute('x1', 50); line.setAttribute('x2', svgW - 50);
+      line.setAttribute('y1', y); line.setAttribute('y2', y);
+      line.setAttribute('stroke', 'rgba(77,168,212,0.14)');
+      line.setAttribute('stroke-width', '1');
+      line.setAttribute('stroke-dasharray', '6,5');
+      svg.appendChild(line);
     }
+
+    // Rotated tier label on left
+    const labelY = y + TIER_H / 2;
+    const txt = document.createElementNS(ns, 'text');
+    txt.setAttribute('x', 24); txt.setAttribute('y', labelY + 4);
+    txt.setAttribute('fill', 'rgba(77,168,212,0.42)');
+    txt.setAttribute('font-family', 'Montserrat, sans-serif');
+    txt.setAttribute('font-size', '8.5');
+    txt.setAttribute('font-weight', '400');
+    txt.setAttribute('letter-spacing', '2');
+    txt.setAttribute('text-anchor', 'middle');
+    txt.setAttribute('transform', `rotate(-90, 24, ${labelY})`);
+    txt.textContent = tier.label.toUpperCase();
+    svg.appendChild(txt);
+
+    // Win count label on right
+    const wlabel = document.createElementNS(ns, 'text');
+    wlabel.setAttribute('x', svgW - 18);
+    wlabel.setAttribute('y', labelY + 4);
+    wlabel.setAttribute('fill', 'rgba(77,168,212,0.35)');
+    wlabel.setAttribute('font-family', 'Montserrat, sans-serif');
+    wlabel.setAttribute('font-size', '8');
+    wlabel.setAttribute('font-weight', '400');
+    wlabel.setAttribute('letter-spacing', '1.5');
+    wlabel.setAttribute('text-anchor', 'middle');
+    wlabel.setAttribute('transform', `rotate(-90, ${svgW - 18}, ${labelY})`);
+    wlabel.textContent = `WINS: ${tier.wins}`;
+    svg.appendChild(wlabel);
   });
 
-  // Draw edges (mutual)
-  mutualEdges.forEach((e, i) => {
-    const a = nodePositions[e.a];
-    const b = nodePositions[e.b];
-    if (!a || !b) return;
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    const ux = dx / dist, uy = dy / dist;
-    const sx = a.x + ux * (nodeRadius + 8);
-    const sy = a.y + uy * (nodeRadius + 8);
-    const ex = b.x - ux * (nodeRadius + 8);
-    const ey = b.y - uy * (nodeRadius + 8);
-    const cx = (sx + ex) / 2 + (ey - sy) * 0.2;
-    const cy = (sy + ey) / 2 - (ex - sx) * 0.2;
-    svg += `<path class="edge-mutual" data-a="${e.a}" data-b="${e.b}"
-      d="M${sx},${sy} Q${cx},${cy} ${ex},${ey}"
-      style="marker-start:url(#arrowMutualStart-${tab});marker-end:url(#arrowMutualEnd-${tab})"/>`;
-    if (e.count > 1) {
-      svg += `<text class="edge-count mutual-count" x="${(sx+ex)/2 + (ey-sy)*0.1}" y="${(sy+ey)/2 - (ex-sx)*0.1}">${e.count}×</text>`;
-    }
+  // Helper functions
+  function edgePt(from, to, r) {
+    const dx = to.x - from.x, dy = to.y - from.y;
+    const len = Math.sqrt(dx*dx + dy*dy) || 1;
+    return { x: to.x - (dx/len)*r, y: to.y - (dy/len)*r };
+  }
+  function startPt(from, to, r) {
+    const dx = to.x - from.x, dy = to.y - from.y;
+    const len = Math.sqrt(dx*dx + dy*dy) || 1;
+    return { x: from.x + (dx/len)*r, y: from.y + (dy/len)*r };
+  }
+
+  // ── ARROWS ───────────────────────────────────────────────────────────────
+  const arrowGroup = document.createElementNS(ns, 'g');
+
+  // Dominant arrows — deduplicated unique winner→loser pairs
+  const drawnDom = new Set();
+  Object.entries(data.beats).forEach(([winner, losers]) => {
+    losers.forEach(loser => {
+      const key = `${winner}→${loser}`;
+      if (drawnDom.has(key)) return;
+      drawnDom.add(key);
+
+      const isMutual = data.mutual.some(([a,b]) =>
+        (a===winner&&b===loser)||(a===loser&&b===winner));
+      if (isMutual) return;
+
+      const from = pos[winner], to = pos[loser];
+      if (!from || !to) return;
+
+      const sx = startPt(from, to, NODE_R + 5);
+      const ex = edgePt(from, to, NODE_R + 5);
+      // gentle curve
+      const cx = (sx.x + ex.x)/2 + (to.y - from.y) * 0.07;
+      const cy = (sx.y + ex.y)/2 - (to.x - from.x) * 0.07;
+
+      const path = document.createElementNS(ns, 'path');
+      path.setAttribute('d', `M${sx.x},${sx.y} Q${cx},${cy} ${ex.x},${ex.y}`);
+      path.setAttribute('stroke', '#4da8d4');
+      path.setAttribute('stroke-width', '1.4');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('opacity', '0.65');
+      path.setAttribute('marker-end', `url(#dom-end-${dataKey})`);
+      arrowGroup.appendChild(path);
+    });
   });
 
-  // Draw nodes
-  Object.values(nodePositions).forEach(sp => {
-    svg += `<g class="node-group" data-name="${sp.name}"
-      onmouseenter="highlightNode('${tab}','${sp.name}')"
-      onmouseleave="clearHighlight('${tab}')"
-      onmousemove="moveTooltip(event)">
-      <circle class="node-circle" cx="${sp.x}" cy="${sp.y}" r="${nodeRadius}"/>
-      <text class="node-label" x="${sp.x}" y="${sp.y}">${sp.name}</text>
-      <circle class="win-badge-bg" cx="${sp.x + nodeRadius * 0.65}" cy="${sp.y - nodeRadius * 0.65}" r="13"/>
-      <text class="win-badge" x="${sp.x + nodeRadius * 0.65}" y="${sp.y - nodeRadius * 0.65}">${sp.wins}</text>
-    </g>`;
+  // Mutual arrows
+  data.mutual.forEach(([a, b]) => {
+    const from = pos[a], to = pos[b];
+    if (!from || !to || a === b) return;
+    const sx = startPt(from, to, NODE_R + 5);
+    const ex = edgePt(from, to, NODE_R + 5);
+    const cx = (sx.x + ex.x)/2 + (to.y - from.y) * 0.18;
+    const cy = (sx.y + ex.y)/2 - (to.x - from.x) * 0.18;
+    const path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', `M${sx.x},${sx.y} Q${cx},${cy} ${ex.x},${ex.y}`);
+    path.setAttribute('stroke', '#e05c5c');
+    path.setAttribute('stroke-width', '1.7');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('opacity', '0.88');
+    path.setAttribute('stroke-dasharray', '7,4');
+    path.setAttribute('marker-start', `url(#mut-start-${dataKey})`);
+    path.setAttribute('marker-end', `url(#mut-end-${dataKey})`);
+    arrowGroup.appendChild(path);
   });
 
-  svg += '</svg>';
-  container.innerHTML = svg;
+  svg.appendChild(arrowGroup);
+
+  // ── NODES ─────────────────────────────────────────────────────────────────
+  const nodeGroup = document.createElementNS(ns, 'g');
+
+  tiers.forEach((tier, ti) => {
+    tier.species.forEach(sp => {
+      const p = pos[sp];
+      const winCount = data.wins[sp] !== undefined ? data.wins[sp] : 0;
+      const beats = data.beats[sp] || [];
+
+      const g = document.createElementNS(ns, 'g');
+      g.setAttribute('class', 'sp-node');
+
+      // Outer glow ring (brighter for tier 0)
+      const glow = document.createElementNS(ns, 'circle');
+      glow.setAttribute('cx', p.x); glow.setAttribute('cy', p.y);
+      glow.setAttribute('r', NODE_R + 7);
+      glow.setAttribute('fill', 'none');
+      glow.setAttribute('stroke', ti === 0 ? '#4da8d4' : tierColors[Math.min(ti, tierColors.length-1)][0]);
+      glow.setAttribute('stroke-width', ti === 0 ? '1.5' : '1');
+      glow.setAttribute('opacity', ti === 0 ? '0.55' : '0.3');
+      g.appendChild(glow);
+
+      // Main circle
+      const circle = document.createElementNS(ns, 'circle');
+      circle.setAttribute('cx', p.x); circle.setAttribute('cy', p.y);
+      circle.setAttribute('r', NODE_R);
+      circle.setAttribute('fill', `url(#ng-${dataKey}-${ti})`);
+      circle.setAttribute('stroke', '#4da8d4');
+      circle.setAttribute('stroke-width', ti === 0 ? '2.2' : '1.3');
+      circle.setAttribute('stroke-opacity', ti === 0 ? '0.95' : '0.5');
+      g.appendChild(circle);
+
+      // Win count badge (top-right of node)
+      const bx = p.x + NODE_R - 5, by = p.y - NODE_R + 5;
+      const badge = document.createElementNS(ns, 'circle');
+      badge.setAttribute('cx', bx); badge.setAttribute('cy', by);
+      badge.setAttribute('r', 12);
+      badge.setAttribute('fill', '#071525');
+      badge.setAttribute('stroke', '#4da8d4');
+      badge.setAttribute('stroke-width', '1.2');
+      badge.setAttribute('stroke-opacity', '0.8');
+      g.appendChild(badge);
+
+      const badgeTxt = document.createElementNS(ns, 'text');
+      badgeTxt.setAttribute('x', bx);
+      badgeTxt.setAttribute('y', by + 4.5);
+      badgeTxt.setAttribute('text-anchor', 'middle');
+      badgeTxt.setAttribute('fill', '#7dd8f8');
+      badgeTxt.setAttribute('font-family', 'Montserrat, sans-serif');
+      badgeTxt.setAttribute('font-size', '10');
+      badgeTxt.setAttribute('font-weight', '700');
+      badgeTxt.textContent = winCount;
+      g.appendChild(badgeTxt);
+
+      // Species name (italic, wrap if long)
+      const fontSize = sp.length > 10 ? 11 : 13;
+      const words = sp.split(' ');
+      // Fit in circle: if single word fits, one line; else split
+      const lineH = fontSize + 3;
+      const lines = [];
+      if (sp.length <= 11) {
+        lines.push(sp);
+      } else {
+        // try to split roughly in half
+        const mid = Math.ceil(words.length / 2);
+        lines.push(words.slice(0, mid).join(' '));
+        lines.push(words.slice(mid).join(' '));
+      }
+      lines.forEach((line, li) => {
+        const offsetY = (li - (lines.length - 1) / 2) * lineH;
+        const t = document.createElementNS(ns, 'text');
+        t.setAttribute('x', p.x);
+        t.setAttribute('y', p.y + offsetY + 4);
+        t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('fill', '#e8f6ff');
+        t.setAttribute('font-family', 'Cormorant Garamond, serif');
+        t.setAttribute('font-style', 'italic');
+        t.setAttribute('font-size', fontSize);
+        t.setAttribute('font-weight', '400');
+        t.textContent = line;
+        g.appendChild(t);
+      });
+
+      // Tooltip events
+      g.addEventListener('mouseenter', e => showTooltip(e, sp, data, winCount));
+      g.addEventListener('mousemove', moveTooltip);
+      g.addEventListener('mouseleave', hideTooltip);
+
+      nodeGroup.appendChild(g);
+    });
+  });
+
+  svg.appendChild(nodeGroup);
+  container.appendChild(svg);
 }
 
-function highlightNode(tab, name) {
-  const data = DATASETS[tab];
-  const sp = data[name];
-  if (!sp) return;
+// ── TOOLTIP ───────────────────────────────────────────────────────────────────
+const tooltip = document.getElementById('tooltip');
 
-  const container = document.getElementById('chart-' + tab);
-
-  // Connected species
-  const connected = new Set([name]);
-  Object.keys(sp.beats).forEach(n => connected.add(n));
-  Object.keys(sp.lost_to).forEach(n => connected.add(n));
-  Object.keys(sp.mutuals).forEach(n => connected.add(n));
-
-  // Dim/highlight nodes
-  container.querySelectorAll('.node-group').forEach(g => {
-    const n = g.getAttribute('data-name');
-    g.classList.toggle('highlighted', n === name);
-    g.classList.toggle('dimmed', !connected.has(n));
-  });
-
-  // Dim/highlight edges
-  container.querySelectorAll('.edge-dominant').forEach(e => {
-    const f = e.getAttribute('data-from'), t = e.getAttribute('data-to');
-    const relevant = f === name || t === name;
-    e.classList.toggle('highlighted', relevant);
-    e.classList.toggle('dimmed', !relevant);
-  });
-  container.querySelectorAll('.edge-mutual').forEach(e => {
-    const a = e.getAttribute('data-a'), b = e.getAttribute('data-b');
-    const relevant = a === name || b === name;
-    e.classList.toggle('highlighted', relevant);
-    e.classList.toggle('dimmed', !relevant);
-  });
-
-  // Build tooltip
-  let html = `<div class="tooltip-name">${name}</div>`;
-  html += `<div class="tooltip-score">Win score: ${sp.wins} · Loss score: ${sp.losses}</div>`;
-
-  if (Object.keys(sp.beats).length > 0) {
-    html += `<div class="tooltip-section"><div class="tooltip-section-title beats">Beats:</div>`;
-    html += `<div class="tooltip-section-list">` +
-      Object.entries(sp.beats).map(([n,c]) => `→ <span>${n}</span> (${c}×)`).join(', ') +
-      `</div></div>`;
+function showTooltip(e, sp, data, winCount) {
+  const beats = data.beats[sp] || [];
+  const losses = data.losses[sp] || [];
+  const mutual = data.mutual.filter(([a,b]) => a===sp||b===sp).map(([a,b]) => a===sp?b:a);
+  let html = `<div class="tt-name">${sp}</div>`;
+  html += `<div><span class="tt-label">Win score: </span><span class="tt-score">${winCount}</span></div>`;
+  if (beats.length) {
+    html += `<div><span class="tt-label">Beats: </span><span class="tt-beats">→ ${beats.join(', → ')}</span></div>`;
   }
-
-  if (Object.keys(sp.lost_to).length > 0) {
-    html += `<div class="tooltip-section"><div class="tooltip-section-title lost">Lost to:</div>`;
-    html += `<div class="tooltip-section-list">` +
-      Object.entries(sp.lost_to).map(([n,c]) => `← <span>${n}</span> (${c}×)`).join(', ') +
-      `</div></div>`;
+  if (losses.length) {
+    html += `<div><span class="tt-label">Loses to: </span><span class="tt-beats" style="color:#f0a0a0">← ${losses.join(', ← ')}</span></div>`;
   }
-
-  if (Object.keys(sp.mutuals).length > 0) {
-    html += `<div class="tooltip-section"><div class="tooltip-section-title mutual">Mutual aggression:</div>`;
-    html += `<div class="tooltip-section-list">` +
-      Object.entries(sp.mutuals).map(([n,c]) => `↔ <span>${n}</span> (${c}×)`).join(', ') +
-      `</div></div>`;
+  if (mutual.length) {
+    html += `<div><span class="tt-label" style="color:#e05c5c">Mutual aggression with: </span><span class="tt-beats">${mutual.join(', ')}</span></div>`;
   }
-
   tooltip.innerHTML = html;
   tooltip.classList.add('visible');
-}
-
-function clearHighlight(tab) {
-  const container = document.getElementById('chart-' + tab);
-  container.querySelectorAll('.node-group').forEach(g => {
-    g.classList.remove('highlighted', 'dimmed');
-  });
-  container.querySelectorAll('.edge-dominant, .edge-mutual').forEach(e => {
-    e.classList.remove('highlighted', 'dimmed');
-  });
-  tooltip.classList.remove('visible');
+  moveTooltip(e);
 }
 
 function moveTooltip(e) {
-  const x = e.clientX + 16;
-  const y = e.clientY - 10;
-  const tw = tooltip.offsetWidth;
-  const th = tooltip.offsetHeight;
-  tooltip.style.left = (x + tw > window.innerWidth ? e.clientX - tw - 16 : x) + 'px';
-  tooltip.style.top = (y + th > window.innerHeight ? e.clientY - th - 10 : y) + 'px';
+  let x = e.clientX + 16, y = e.clientY + 16;
+  const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+  if (x + tw > window.innerWidth - 10) x = e.clientX - tw - 12;
+  if (y + th > window.innerHeight - 10) y = e.clientY - th - 12;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top = y + 'px';
 }
 
-// Initial render
-renderChart('snorkel');
+function hideTooltip() { tooltip.classList.remove('visible'); }
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function showChart(key) {
+  document.querySelectorAll('.chart-container').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`chart-${key}`).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+buildChart('svg-dive', 'dive');
+buildChart('svg-snorkel', 'snorkel');
+buildChart('svg-combined', 'combined');
 </script>
 </body>
 </html>
